@@ -20,7 +20,7 @@ module "eks" {
             ami_type       = "AL2_x86_64"
         }
     }
-
+    # Tags for the EKS cluster
     tags = {
         Environment = "dev"                         # Environment tag
         Project     = "cloud-native-devops-platform" # Project tag
