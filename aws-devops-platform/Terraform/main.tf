@@ -8,4 +8,6 @@ module "eks" {
 }
 module "rds" {
   source = "./terraform-aws-modules/rds/"
+  public_subnet_ids         = module.vpc.subnet_and_cidr.public_subnets
+  vpc_id             = module.vpc.subnet_and_cidr.vpc_id
 }
