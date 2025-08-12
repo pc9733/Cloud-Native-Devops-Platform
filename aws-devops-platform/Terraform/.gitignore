@@ -2,5 +2,5 @@
 .terraform.tfstate.backup
 .terraform.lock.hcl
 .terraform/*
-terraform-aws-modules/rds/.terraform/*
-terraform-aws-modules/vpc/.terraform/*
+./terraform-aws-modules/rds/.terraform/*
+./terraform-aws-modules/vpc/.terraform/*
