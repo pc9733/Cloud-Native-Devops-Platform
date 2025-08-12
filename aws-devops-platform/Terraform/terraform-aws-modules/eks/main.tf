@@ -6,7 +6,7 @@ module "eks" {
     enable_irsa = true # Enable IAM roles for service accounts
 
     cluster_name    = "cloudnativedevopsplatformeks" # Name of the EKS cluster
-    cluster_version = "1.33"                             # Kubernetes version
+    cluster_version = "1.32"                             # Kubernetes version
 
     subnet_ids      = var.subnet_ids # Subnets for EKS cluster
     vpc_id          = var.vpc_id     # VPC for EKS cluster
@@ -20,7 +20,7 @@ module "eks" {
             ami_type       = "AL2_x86_64"
         }
     }
-
+    # Tags for the EKS cluster
     tags = {
         Environment = "dev"                         # Environment tag
         Project     = "cloud-native-devops-platform" # Project tag
