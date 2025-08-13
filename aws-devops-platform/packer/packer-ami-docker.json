@@ -1,0 +1,44 @@
+{
+  "variables": {
+    "ami_name": "custom-ami-with-docker-cw-datadog",
+    "region": "us-east-1",
+    "instance_type": "t2.micro",
+    "source_ami": "ami-0de716d6197524dd9", 
+    "ssh_username": "ec2-user"
+  },
+
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "{{user `region`}}",
+      "source_ami": "{{user `source_ami`}}",
+      "instance_type": "{{user `instance_type`}}",
+      "ami_name": "{{user `ami_name`}}-{{timestamp}}",
+      "ssh_username": "{{user `ssh_username`}}",
+      "ami_description": "Amazon Linux 2 with Docker, CloudWatch, and Datadog agents installed",
+      "tags": {
+        "Name": "Custom AMI with Docker, CloudWatch, and Datadog"
+      },
+      "run_tags": {
+        "Name": "Build AMI"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo dnf install -y docker",
+        "sudo systemctl start docker",
+        "DD_API_KEY=1166257fe5b8b7fd997259642f1c78d2 DD_AGENT_MAJOR_VERSION=7 DD_SITE=\"datadoghq.com\" bash -c \"$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)\"",
+        "sudo systemctl start datadog-agent",
+        "sudo systemctl enable datadog-agent",
+        "sudo usermod -a -G docker dd-agent",
+        "sudo dnf install -y amazon-cloudwatch-agent",
+        "echo '{\"agent\": {\"region\": \"us-east-1\"}, \"metrics\": {\"metrics_collected\": {\"cpu\": {\"measurement\": [\"cpu_usage_idle\"], \"metrics_collection_interval\": 60}}}}' | sudo tee /opt/aws/amazon-cloudwatch-agent/bin/config.json",
+        "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop",
+        "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a start"
+      ]
+    }
+  ]
+}
