@@ -1,0 +1,26 @@
+plugin: amazon.aws.aws_ec2
+
+regions:
+  - us-east-1
+
+filters:
+  "tag:Role": "backend"
+
+hostnames:
+  - dns-name
+  - public-ip-address
+
+compose:
+  ansible_host: public_ip_address
+
+# predictable groups (both styles, to be safe)
+keyed_groups:
+  - key: tags.Role
+    prefix: role_
+    separator: "_"
+  - key: tags.Role
+    prefix: tag_Role_
+    separator: "_"
+  - key: tags.Name
+    prefix: name_
+    separator: "_"

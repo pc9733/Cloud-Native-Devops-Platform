@@ -1,0 +1,21 @@
+app_user: cloudapp
+app_group: cloudapp
+app_dir: /opt/cloud-app
+app_venv: /opt/cloud-app/.venv
+app_service_name: cloud-app
+app_env_file: /etc/sysconfig/cloud-app
+
+# repo-friendly relative source path (no absolute paths)
+# repo layout assumed:
+#   repo-root/
+#     ├─ ansible/
+#     └─ cloud-app/
+#         └─ backend/
+app_src: "{{ playbook_dir }}/../../cloud-app/backend"
+
+# DB envs (safe defaults; we'll wire Secrets Manager later)
+db_host: ""
+db_port: "5432"
+db_name: ""
+db_user: ""
+db_password: ""

@@ -1,0 +1,5 @@
+- name: Deploy backend
+  hosts: tag_Role__backend     # matches your dynamic inventory
+  become: yes
+  roles:
+    - app

@@ -1,0 +1,20 @@
+[Unit]
+Description=Cloud App (Flask + Gunicorn)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ app_user }}
+Group={{ app_group }}
+WorkingDirectory={{ app_dir }}
+EnvironmentFile=-{{ app_env_file }}
+Environment=PYTHONUNBUFFERED=1
+Environment=HOME={{ app_dir }}
+# inline flags: no external gunicorn config file needed
+ExecStart={{ app_venv }}/bin/gunicorn --chdir {{ app_dir }} --bind 0.0.0.0:8080 --workers 2 --threads 4 wsgi:app
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
