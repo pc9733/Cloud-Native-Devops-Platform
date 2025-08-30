@@ -1,6 +1,6 @@
 # Create an EC2 instance
 resource "aws_instance" "my_ec2_instance" {
-  ami           = "ami-0484194c9fd83f3e7"  # Amazon Machine Image ID
+  ami           = "ami-01b604949e9bc9ab8"  # Amazon Machine Image ID
   instance_type = "t2.micro"                # Instance type (adjust as needed)
   key_name      = var.key_name              # SSH key pair name
 
@@ -42,7 +42,13 @@ resource "aws_security_group" "new_security_group" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
+  ingress {
+    description = "HTTP"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   # No inbound 443 needed for CloudWatch/Datadog
   egress {
     from_port   = 0

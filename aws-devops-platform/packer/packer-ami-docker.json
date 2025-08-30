@@ -4,8 +4,10 @@
     "region": "us-east-1",
     "instance_type": "t2.micro",
     "source_ami": "ami-0de716d6197524dd9", 
-    "ssh_username": "ec2-user"
-  },
+    "ssh_username": "ec2-user",
+    "dd_api_key": "{{env `DD_API_KEY`}}",
+    "dd_site": "datadoghq.com"
+},
 
   "builders": [
     {
@@ -30,8 +32,8 @@
       "inline": [
         "sudo dnf install -y docker",
         "sudo systemctl start docker",
-        "DD_API_KEY=1166257fe5b8b7fd997259642f1c78d2 DD_AGENT_MAJOR_VERSION=7 DD_SITE=\"datadoghq.com\" bash -c \"$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)\"",
-        "sudo systemctl start datadog-agent",
+        "test -n \"{{user `dd_api_key`}}\" || { echo 'ERROR: DD_API_KEY not set'; exit 1; }",
+        "DD_API_KEY={{user `dd_api_key`}} DD_AGENT_MAJOR_VERSION=7 DD_SITE={{user `dd_site`}} bash -c \"$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)\"",        "sudo systemctl start datadog-agent",
         "sudo systemctl enable datadog-agent",
         "sudo usermod -a -G docker dd-agent",
         "sudo dnf install -y amazon-cloudwatch-agent",
