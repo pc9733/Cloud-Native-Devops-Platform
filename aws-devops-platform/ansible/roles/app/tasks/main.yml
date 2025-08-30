@@ -1,0 +1,121 @@
+---
+# minimal packages for Amazon Linux/RHEL
+- name: Install base packages
+  ansible.builtin.package:
+    name:
+      - python3
+      - python3-pip
+      - gcc
+    state: present
+
+- name: Create app group
+  ansible.builtin.group:
+    name: "{{ app_group }}"
+    system: true
+
+- name: Create app user
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    group: "{{ app_group }}"
+    system: true
+    create_home: false
+    shell: /sbin/nologin
+
+- name: Create app directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0755"
+
+# --- pre-check on controller (no sudo) ---
+- name: Check app sources exist on control node
+  ansible.builtin.stat:
+    path: "{{ app_src }}/requirements.txt"
+  register: app_src_req
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+- name: Abort if app sources are missing
+  ansible.builtin.fail:
+    msg: "App sources not found at {{ app_src }} (missing requirements.txt)"
+  when: not app_src_req.stat.exists
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+# --- deliver code ---
+- name: Copy backend app sources to target
+  ansible.builtin.copy:
+    src: "{{ app_src }}/"
+    dest: "{{ app_dir }}/"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0644"            # files
+    directory_mode: "0755"  # dirs need exec bit
+  notify: Restart app
+
+- name: Fix ownership and modes recursively
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "u=rwX,g=rX,o=rX"
+    recurse: yes
+  notify: Restart app
+
+# --- python env & deps ---
+- name: Ensure venv exists
+  ansible.builtin.command: "python3 -m venv {{ app_venv }}"
+  args:
+    creates: "{{ app_venv }}/bin/activate"
+
+- name: Upgrade pip in venv
+  ansible.builtin.command: "{{ app_venv }}/bin/pip install --upgrade pip"
+
+- name: Install requirements in venv
+  ansible.builtin.pip:
+    requirements: "{{ app_dir }}/requirements.txt"
+    virtualenv: "{{ app_venv }}"
+
+# --- env file (DB vars safe-defaulted) ---
+- name: Ensure env dir exists
+  ansible.builtin.file:
+    path: "{{ app_env_file | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Ensure DB vars are defined (set sane defaults)
+  ansible.builtin.set_fact:
+    db_host: "{{ db_host | default('') }}"
+    db_port: "{{ (db_port | default('5432')) | string }}"
+    db_name: "{{ db_name | default('') }}"
+    db_user: "{{ db_user | default('') }}"
+    db_password: "{{ db_password | default('') }}"
+
+- name: Render environment file
+  ansible.builtin.template:
+    src: "cloud-app.env.j2"              # << will add this next step
+    dest: "{{ app_env_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Restart app
+
+# --- systemd unit (inline gunicorn flags) ---
+- name: Install systemd unit
+  ansible.builtin.template:
+    src: "cloud-app.service.j2"
+    dest: "/etc/systemd/system/{{ app_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Enable and start service
+  ansible.builtin.systemd:
+    name: "{{ app_service_name }}"
+    enabled: true
+    state: started
