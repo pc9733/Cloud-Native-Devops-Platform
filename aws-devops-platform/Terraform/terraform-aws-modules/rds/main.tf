@@ -12,7 +12,7 @@ resource "aws_db_subnet_group" "sb_subnet_group" {
 }
 
 resource "aws_secretsmanager_secret" "db_secret" {
-  name        = "mydb-credentials-1.1"
+  name        = "mydb-credentials-1.2"
   description = "Credentials for MySQL DB"
 }
 

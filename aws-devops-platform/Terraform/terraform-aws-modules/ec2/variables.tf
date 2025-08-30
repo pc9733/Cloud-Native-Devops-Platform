@@ -21,3 +21,10 @@ variable "name" {
   type        = string
   default     = "my_ec2_instance"
 }
+
+variable "instance" {
+  description = "Boolean to determine if EC2 instances should be created"
+  type        = bool
+  default     = true
+  
+}
