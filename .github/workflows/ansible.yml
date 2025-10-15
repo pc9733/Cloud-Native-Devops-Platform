@@ -1,0 +1,20 @@
+name: Ansible Lint CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Ansible
+        run: |
+          pip install ansible ansible-lint
+      - name: Lint Ansible Playbooks
+        run: |
+          ansible-lint aws-devops-platform/ansible/playbooks/site.yml
