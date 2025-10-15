@@ -16,5 +16,15 @@ Restart=always
 RestartSec=3
 LimitNOFILE=65536
 
+ # Hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=true
+ProtectHostname=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+
 [Install]
 WantedBy=multi-user.target
