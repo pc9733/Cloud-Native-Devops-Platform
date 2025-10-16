@@ -1,4 +1,4 @@
-name: Terraform CI
+name: Terraform CI/CD
 
 on:
   push:
@@ -7,8 +7,24 @@ on:
     branches: [ main ]
 
 jobs:
-  terraform:
+  fmt-lint:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform Format Check
+        run: terraform -chdir=aws-devops-platform/Terraform fmt -check
+      - name: Install tflint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      - name: Run tflint
+        run: tflint aws-devops-platform/Terraform
+
+  plan:
+    runs-on: ubuntu-latest
+    needs: fmt-lint
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -16,7 +32,22 @@ jobs:
         uses: hashicorp/setup-terraform@v2
       - name: Terraform Init
         run: terraform -chdir=aws-devops-platform/Terraform init
-      - name: Terraform Validate
-        run: terraform -chdir=aws-devops-platform/Terraform validate
       - name: Terraform Plan
         run: terraform -chdir=aws-devops-platform/Terraform plan
+
+  apply:
+    runs-on: ubuntu-latest
+    needs: plan
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://console.aws.amazon.com/s3/home
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform Init
+        run: terraform -chdir=aws-devops-platform/Terraform init
+      - name: Terraform Apply (manual approval required)
+        run: terraform -chdir=aws-devops-platform/Terraform apply -auto-approve
