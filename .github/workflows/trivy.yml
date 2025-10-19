@@ -1,0 +1,35 @@
+name: Trivy Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  trivy-iac:
+    name: Scan Terraform for vulnerabilities
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Trivy
+        run: |
+          sudo apt-get update && sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.deb
+          sudo dpkg -i trivy_0.50.2_Linux-64bit.deb
+      - name: Trivy scan Terraform
+        run: trivy config aws-devops-platform/Terraform
+
+  # Uncomment and configure this job when you have container images to scan
+  # trivy-image:
+  #   name: Scan container image for vulnerabilities
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Install Trivy
+  #       run: |
+  #         sudo apt-get update && sudo apt-get install -y wget
+  #         wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.2_Linux-64bit.deb
+  #         sudo dpkg -i trivy_0.50.2_Linux-64bit.deb
+  #     - name: Trivy scan image
+  #       run: trivy image <your-image-name>

@@ -28,6 +28,24 @@ This directory contains Ansible playbooks, roles, and configuration files for au
 - Python 3.6+
 - AWS CLI configured (for dynamic inventory)
 
+## Artifact Storage
+- **GitHub Container Registry (ghcr.io)**: Recommended for storing container images. Free for public images, supports versioning and access control.
+- To push images from GitHub Actions, use the following steps:
+
+```yaml
+- name: Log in to GitHub Container Registry
+  uses: docker/login-action@v3
+  with:
+    registry: ghcr.io
+    username: ${{ github.actor }}
+    password: ${{ secrets.GITHUB_TOKEN }}
+
+- name: Build and push Docker image
+  run: |
+    docker build -t ghcr.io/${{ github.repository }}/cloud-app-backend:latest aws-devops-platform/cloud-app/backend
+    docker push ghcr.io/${{ github.repository }}/cloud-app-backend:latest
+```
+
 ## Notes
 - Ensure your EC2 instances are accessible and have the required permissions.
 - Customize variables in `roles/app/defaults/main.yml` as needed.
