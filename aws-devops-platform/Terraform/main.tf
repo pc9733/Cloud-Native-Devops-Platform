@@ -1,3 +1,9 @@
+variable "environment" {
+  description = "Deployment environment (dev, test, prod)"
+  type        = string
+  default     = "dev"
+}
+
 module "vpc" {
   source = "./terraform-aws-modules/vpc/"
 }
@@ -25,4 +31,10 @@ module "lambda" {
   db_port = module.rds.db_instance_port
   db_name = module.rds.db_instance_name
 
+}
+
+terraform {
+  backend "s3" {
+    key = "terraform/${var.environment}/terraform.tfstate"
+  }
 }

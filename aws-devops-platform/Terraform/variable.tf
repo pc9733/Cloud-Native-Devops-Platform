@@ -9,3 +9,9 @@ variable "key_name" {
   type        = string
   default     = "cloudnative"
 }
+
+variable "environment" {
+  description = "Deployment environment (dev, test, prod)"
+  type        = string
+  default     = "dev"
+}
